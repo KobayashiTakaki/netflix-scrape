@@ -6,12 +6,16 @@ import re
 
 video_sets_filepath = os.path.dirname(os.path.abspath(__file__)) + '/video_sets.csv'
 videos_filepath = os.path.dirname(os.path.abspath(__file__)) + '/videos.csv'
-url = input('input url: ')
 video_sets_header = ["netflix_id", "title", "video_type"]
 videos_header = ["video_sets_netflix_id", "netflix_id", "season", "episode", "runtime"]
 
-res = requests.get(url)
-# print(res.text)
+input_url = input('input url: ')
+clean_url = re.sub('\?.+', '', input_url)
+netflix_id = re.search(r"[0-9]+$", clean_url).group()
+url = "https://www.netflix.com/jp/title/" + netflix_id
+headers = { 'Accept-Language': "ja,en-US" }
+res = requests.get(url, headers=headers)
+
 reactContext = res.text \
     .split("netflix.reactContext = ")[1] \
     .split(';')[0]
@@ -41,6 +45,7 @@ if re.search(r'"type":"show"', reactContext):
 
     seasons = re.search(r'"seasons":\[\{(.*?\}\]\}\])', reactContext).group()
     seasons_val = seasons.encode().decode('unicode-escape')
+    print(seasons_val)
     seasons = json.loads('{' + seasons_val + '}')['seasons']
 
     # videos
