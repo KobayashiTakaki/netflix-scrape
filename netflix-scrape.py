@@ -7,7 +7,7 @@ import re
 video_sets_filepath = os.path.dirname(os.path.abspath(__file__)) + '/video_sets.csv'
 videos_filepath = os.path.dirname(os.path.abspath(__file__)) + '/videos.csv'
 url = input('input url: ')
-video_sets_header = ["netflix_id", "title", "type"]
+video_sets_header = ["netflix_id", "title", "video_type"]
 videos_header = ["video_sets_netflix_id", "netflix_id", "season", "episode", "runtime"]
 
 res = requests.get(url)
@@ -35,7 +35,7 @@ if re.search(r'"type":"show"', reactContext):
         f.write(title)
         f.write(',')
 
-        # type
+        # video_type
         f.write("show")
         f.write('\n')
 
@@ -90,7 +90,7 @@ if re.search(r'"type":"movie"', reactContext):
         f.write(title)
         f.write(',')
 
-        # type
+        # video_type
         f.write("movie")
         f.write('\n')
 
