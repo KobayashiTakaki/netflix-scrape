@@ -118,20 +118,3 @@ if re.search(r'"type":"movie"', reactContext):
         # rumtime
         f.write(str(metaData['runtime']))
         f.write('\n')
-
-# with open(out_filepath, mode='w', encoding='utf-8') as f:
-#     f.write(','.join(header))
-#     f.write('\n')
-#     for url in urls:
-#         res = requests.get(url)
-#         soup = bs(res.content, "lxml")
-#         page_header_as = soup.find('header').find('h1').find_all('a')
-#         track_name = page_header_as[0].text
-#         track_name = re.sub('\"\'\,', '', track_name)
-#         artist = page_header_as[1].text
-#         artist = re.sub('\"\'\,', '', artist)
-#         track_id_meta = soup.find('meta', attrs={'property': 'twitter:app:url:iphone'})
-#         track_id = track_id_meta['content'].split(':')[-1]
-#         print(','.join([track_id, url, artist, track_name]))
-#         f.write(','.join([track_id, url, artist, track_name]))
-#         f.write('\n')
