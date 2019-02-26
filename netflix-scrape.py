@@ -16,6 +16,8 @@ url = "https://www.netflix.com/jp/title/" + netflix_id
 headers = { 'Accept-Language': "ja,en-US" }
 res = requests.get(url, headers=headers)
 
+
+
 reactContext = res.text \
     .split("netflix.reactContext = ")[1] \
     .split(';')[0]
@@ -45,7 +47,7 @@ if re.search(r'"type":"show"', reactContext):
 
     seasons = re.search(r'"seasons":\[\{(.*?\}\]\}\])', reactContext).group()
     seasons_val = seasons.encode().decode('unicode-escape')
-    print(seasons_val)
+    seasons_val = re.sub('"synopsis":"(.+?)",', '', seasons_val)
     seasons = json.loads('{' + seasons_val + '}')['seasons']
 
     # videos
@@ -53,8 +55,8 @@ if re.search(r'"type":"show"', reactContext):
         f.write(','.join(videos_header))
         f.write('\n')
 
-        for season in seasons:
-            episodes = season['episodes']
+        for i in range(len(seasons)):
+            episodes = seasons[i]['episodes']
 
             for episode in episodes:
                 # video_sets_netflix_id
@@ -66,7 +68,7 @@ if re.search(r'"type":"show"', reactContext):
                 f.write(',')
 
                 # season
-                f.write(str(season['num']))
+                f.write(str(seasons[i]['num']))
                 f.write(',')
 
                 # episode
