@@ -9,119 +9,118 @@ videos_filepath = os.path.dirname(os.path.abspath(__file__)) + '/videos.csv'
 video_sets_header = ["netflix_id", "title", "video_type"]
 videos_header = ["video_sets_netflix_id", "netflix_id", "season", "episode", "runtime"]
 
-input_url = input('input url: ')
-clean_url = re.sub('\?.+', '', input_url)
-netflix_id = re.search(r"[0-9]+$", clean_url).group()
-url = "https://www.netflix.com/jp/title/" + netflix_id
-headers = { 'Accept-Language': "ja,en-US" }
-res = requests.get(url, headers=headers)
+filename = input('input filename: ')
+input_urls = [line.strip() for line in open(filename).readlines()]
 
 
 
-reactContext = res.text \
-    .split("netflix.reactContext = ")[1] \
-    .split(';')[0]
+with open(video_sets_filepath, mode='w', encoding='utf-8') as vsf, \
+    open(videos_filepath, mode='w', encoding='utf-8') as vf:
 
-soup = bs(res.content, "lxml")
-title = soup.find("h1", class_="title-title").text.strip()
+    # video_sets header
+    vsf.write(','.join(video_sets_header))
+    vsf.write('\n')
 
-if re.search(r'"type":"show"', reactContext):
-    topLevelVideoId = re.search(r'"topLevelVideoId":[0-9]+', reactContext).group() \
-                        .split(":")[1]
-    # video_sets
-    with open(video_sets_filepath, mode='w', encoding='utf-8') as f:
-        f.write(','.join(video_sets_header))
-        f.write('\n')
+    # videos header
+    vf.write(','.join(videos_header))
+    vf.write('\n')
 
-        # netflix_id
-        f.write(topLevelVideoId)
-        f.write(',')
+    for input_url in input_urls:
+        clean_url = re.sub('\?.+', '', input_url)
+        netflix_id = re.search(r"[0-9]+$", clean_url).group()
+        url = "https://www.netflix.com/jp/title/" + netflix_id
+        headers = { 'Accept-Language': "ja,en-US" }
+        res = requests.get(url, headers=headers)
 
-        # title
-        f.write(title)
-        f.write(',')
 
-        # video_type
-        f.write("show")
-        f.write('\n')
+        reactContext = res.text \
+            .split("netflix.reactContext = ")[1] \
+            .split(';')[0]
 
-    seasons = re.search(r'"seasons":\[\{(.*?\}\]\}\])', reactContext).group()
-    seasons_val = seasons.encode().decode('unicode-escape')
-    seasons_val = re.sub('"synopsis":"(.+?)",', '', seasons_val)
-    seasons = json.loads('{' + seasons_val + '}')['seasons']
+        soup = bs(res.content, "lxml")
+        title = soup.find("h1", class_="title-title").text.strip()
 
-    # videos
-    with open(videos_filepath, mode='w', encoding='utf-8') as f:
-        f.write(','.join(videos_header))
-        f.write('\n')
+        if re.search(r'"type":"show"', reactContext):
+            topLevelVideoId = re.search(r'"topLevelVideoId":[0-9]+', reactContext).group() \
+                                .split(":")[1]
+            ### video_sets ###
+            # netflix_id
+            vsf.write(topLevelVideoId)
+            vsf.write(',')
 
-        for i in range(len(seasons)):
-            episodes = seasons[i]['episodes']
+            # title
+            vsf.write(title)
+            vsf.write(',')
 
-            for episode in episodes:
-                # video_sets_netflix_id
-                f.write(topLevelVideoId)
-                f.write(',')
+            # video_type
+            vsf.write("show")
+            vsf.write('\n')
 
-                # netflix_id
-                f.write(str(episode['episodeId']))
-                f.write(',')
+            ### videos ###
+            seasons = re.search(r'"seasons":\[\{(.*?\}\]\}\])', reactContext).group()
+            seasons_val = seasons.encode().decode('unicode-escape')
+            seasons_val = re.sub('"synopsis":"(.+?)",', '', seasons_val)
+            seasons = json.loads('{' + seasons_val + '}')['seasons']
 
-                # season
-                f.write(str(seasons[i]['num']))
-                f.write(',')
+            for i in range(len(seasons)):
+                episodes = seasons[i]['episodes']
 
-                # episode
-                f.write(str(episode['episodeNum']))
-                f.write(',')
+                for episode in episodes:
+                    # video_sets_netflix_id
+                    vf.write(topLevelVideoId)
+                    vf.write(',')
 
-                # rumtime
-                f.write(str(episode['runtime']))
-                f.write('\n')
+                    # netflix_id
+                    vf.write(str(episode['episodeId']))
+                    vf.write(',')
 
-if re.search(r'"type":"movie"', reactContext):
-    pattern = r'"metaData":.+"topLevelVideoId":[0-9]+.+"runtime":[0-9]+'
-    metaData = re.search(pattern, reactContext).group() + '}'
-    metaData = json.loads('{' + metaData + '}')['metaData']
+                    # season
+                    vf.write(str(seasons[i]['num']))
+                    vf.write(',')
 
-    # video_sets
-    with open(video_sets_filepath, mode='w', encoding='utf-8') as f:
-        f.write(','.join(video_sets_header))
-        f.write('\n')
+                    # episode
+                    vf.write(str(episode['episodeNum']))
+                    vf.write(',')
 
-        # netflix_id
-        f.write(str(metaData['topLevelVideoId']))
-        f.write(',')
+                    # rumtime
+                    vf.write(str(episode['runtime']))
+                    vf.write('\n')
 
-        # title
-        f.write(title)
-        f.write(',')
+        if re.search(r'"type":"movie"', reactContext):
+            pattern = r'"metaData":.+"topLevelVideoId":[0-9]+.+"runtime":[0-9]+'
+            metaData = re.search(pattern, reactContext).group() + '}'
+            metaData = json.loads('{' + metaData + '}')['metaData']
 
-        # video_type
-        f.write("movie")
-        f.write('\n')
+            ### video_sets ###
+            # netflix_id
+            vsf.write(str(metaData['topLevelVideoId']))
+            vsf.write(',')
 
-    # videos
-    with open(videos_filepath, mode='w', encoding='utf-8') as f:
-        f.write(','.join(videos_header))
-        f.write('\n')
+            # title
+            vsf.write(title)
+            vsf.write(',')
 
-        # video_sets_netflix_id
-        f.write(str(metaData['topLevelVideoId']))
-        f.write(',')
+            # video_type
+            vsf.write("movie")
+            vsf.write('\n')
 
-        # netflix_id
-        f.write(str(metaData['topLevelVideoId']))
-        f.write(',')
+            ### videos ###
+            # video_sets_netflix_id
+            vf.write(str(metaData['topLevelVideoId']))
+            vf.write(',')
 
-        # season
-        f.write(str(1))
-        f.write(',')
+            # netflix_id
+            vf.write(str(metaData['topLevelVideoId']))
+            vf.write(',')
 
-        # episode
-        f.write(str(1))
-        f.write(',')
+            # season
+            vf.write(str(1))
+            vf.write(',')
 
-        # rumtime
-        f.write(str(metaData['runtime']))
-        f.write('\n')
+            # episode
+            vf.write(str(1))
+            vf.write(',')
+
+            # rumtime
+            vf.write(str(metaData['runtime']))
+            vf.write('\n')
