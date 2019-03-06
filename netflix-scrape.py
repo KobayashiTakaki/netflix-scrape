@@ -12,8 +12,6 @@ videos_header = ["video_sets_netflix_id", "netflix_id", "season", "episode", "ru
 filename = input('input filename: ')
 input_urls = [line.strip() for line in open(filename).readlines()]
 
-
-
 with open(video_sets_filepath, mode='w', encoding='utf-8') as vsf, \
     open(videos_filepath, mode='w', encoding='utf-8') as vf:
 
@@ -31,7 +29,6 @@ with open(video_sets_filepath, mode='w', encoding='utf-8') as vsf, \
         url = "https://www.netflix.com/jp/title/" + netflix_id
         headers = { 'Accept-Language': "ja,en-US" }
         res = requests.get(url, headers=headers)
-
 
         reactContext = res.text \
             .split("netflix.reactContext = ")[1] \
